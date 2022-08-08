@@ -3,7 +3,6 @@
 import os
 
 from sarif import SarifFile, Artifact, Result, Tool
-from rich.pretty import pprint
 
 
 def main():
