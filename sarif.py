@@ -127,19 +127,19 @@ class Result:
     package: str
 
     @staticmethod
-    def fromDict(result_dict: dict, artifacts: List[Artifact], tool: Tool) -> "Result":
+    def fromDict(result_dict: dict, artifacts: List[Artifact], tool: Tool, verbose=True) -> "Result":
         ruleId = result_dict["ruleId"]
         level = Level.fromStr(result_dict["level"]) if "level" in result_dict else ""
         kind = ResultKind.fromStr(result_dict["kind"]) if "kind" in result_dict else ""
         message = result_dict["message"]["text"] if "text" in result_dict["message"] else ""
         
-        if len(result_dict["locations"]) > 1:
+        if len(result_dict["locations"]) > 1 and verbose:
             print(f"[sarif][TODO] Multiple locations for a Result not yet implemented, only taking the first.")
 
         artifact = None
         region = None
 
-        if len(result_dict["locations"]) == 1:
+        if len(result_dict["locations"]) >= 1:
             location = result_dict["locations"][0]
             artLoc = location["physicalLocation"]["artifactLocation"]
             
@@ -156,7 +156,7 @@ class Result:
 
             # If we didn't find the Artifact after searching, create a new one (not great)
             if artifact is None:
-                print(f"[sarif][Warning] Artifact not found while parsing Result.")
+                if verbose: print(f"[sarif][Warning] Artifact not found while parsing Result.")
                 artifact = Artifact.fromDict({"location": artLoc})
             
             region = Region.fromDict(location["physicalLocation"]["region"])
@@ -213,7 +213,7 @@ class SarifFile:
             if "results" in run:
                 for result in run["results"]:
                     # Results need to be able to reference Artifacts and the Tool
-                    results.append(Result.fromDict(result, artifacts, tool))
+                    results.append(Result.fromDict(result, artifacts, tool, verbose=verbose))
 
             return SarifFile(tool=tool, artifacts=artifacts, results=results)
                 
