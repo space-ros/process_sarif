@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-from process_sarif.sarif_helpers import get_sarif_in_build
+import os
+from process_sarif.sarif_helpers import get_sarif_in_build, replace_misra_results
 
 
 def main():
@@ -22,7 +23,10 @@ def main():
     result_count = sum([len(s.results) for s in sarif_files])
 
     print(f"Total results: {result_count}")
-    input(f"Results from SARIF files with results (press enter):")
+    print("Replacing MISRA rule text")
+
+    for f in sarif_files:
+        f.results = replace_misra_results(f.results)
 
     use_pprint = False
 

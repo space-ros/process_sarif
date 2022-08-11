@@ -15,6 +15,15 @@ from enum import Enum
 # Artifacts, and Results. The sarif_helpers.py file provides some helper functions
 # to load and process these objects in various ways.
 
+def _log(log_path: str, message: str):
+    '''
+    Used by classes in this file to report issues. Not meant for outside use.
+    '''
+
+    if log_path is not None:
+        with open(log_path, "a") as f:
+            f.write(message + "\n")
+
 @dataclass
 class Artifact:
     '''
@@ -31,10 +40,13 @@ class Artifact:
     filename: str
 
     @staticmethod
-    def from_dict(artifact_dict: dict) -> "Artifact":
+    def from_dict(artifact_dict: dict, log_path: Optional[str] = None) -> "Artifact":
         uri = artifact_dict["location"]["uri"]
         uriBaseId = artifact_dict["location"]["uriBaseId"] if "uriBaseId" in artifact_dict["location"] else ""
         filename = os.path.basename(uri)
+
+        if not os.path.isabs(os.path.join(uriBaseId, uri)):
+            _log(log_path, f"\tArtifact {os.path.join(uriBaseId, uri)} is not absolute!")
 
         return Artifact(uri=uri, uriBaseId=uriBaseId, filename=filename)
 
@@ -85,7 +97,7 @@ class Tool:
     rules: List[Rule]
 
     @staticmethod
-    def from_dict(tool_dict: dict) -> "Tool":
+    def from_dict(tool_dict: dict, log_path: Optional[str] = None) -> "Tool":
         driver = tool_dict["driver"]
 
         name = driver["name"] if "name" in driver else ""
@@ -161,9 +173,12 @@ class Region:
     startColumn: int
 
     @staticmethod
-    def from_dict(region_dict: dict) -> "Region":
+    def from_dict(region_dict: dict, log_path: Optional[str] = None) -> "Region":
         startLine = region_dict["startLine"] if "startLine" in region_dict else ""
         startColumn = region_dict["startColumn"] if "startColumn" in region_dict else ""
+
+        if startLine == "":
+            _log(log_path, "\tStart line not set!")
         
         return Region(startLine=startLine, startColumn=startColumn)
 
@@ -192,14 +207,15 @@ class Result:
     package: str
 
     @staticmethod
-    def from_dict(result_dict: dict, artifacts: List[Artifact], tool: Tool, verbose=True) -> "Result":
+    def from_dict(result_dict: dict, artifacts: List[Artifact], tool: Tool, verbose=True, log_path: Optional[str] = None) -> "Result":
         ruleId = result_dict["ruleId"]
         level = Level.from_str(result_dict["level"]) if "level" in result_dict else ""
         kind = ResultKind.from_str(result_dict["kind"]) if "kind" in result_dict else ""
         message = result_dict["message"]["text"] if "text" in result_dict["message"] else ""
         
         if len(result_dict["locations"]) > 1 and verbose:
-            print(f"[sarif][TODO] Multiple locations for a Result not yet implemented, only taking the first.")
+            print("Multiple locations for a Result not yet implemented, only taking the first.")
+            _log(log_path, f"\tFound multiple locations in a result, not yet implemented.")
 
         artifact = None
         region = None
@@ -222,6 +238,7 @@ class Result:
             # If we didn't find the Artifact after searching, create a new one (not great)
             if artifact is None:
                 if verbose: print(f"[sarif][Warning] Artifact not found while parsing Result.")
+                _log(log_path, f"\tArtifact not found while parsing Result.")
                 artifact = Artifact.from_dict({"location": artLoc})
             
             region = Region.from_dict(location["physicalLocation"]["region"])
@@ -249,14 +266,19 @@ class SarifFile:
     results: List[Result]
 
     @staticmethod
-    def from_path(path: str, verbose=True) -> Optional["SarifFile"]:
+    def from_path(path: str, verbose=True, log_path: Optional[str] = None) -> Optional["SarifFile"]:
+        if verbose: print(f"Loading {path} as SarifFile.")
         with open(path) as sarif_f:
             try:
                 sarif = json.load(sarif_f)
+                _log(log_path, f"Loaded {path}.")
             except json.decoder.JSONDecodeError as e:
                 if verbose:
                     print(f"Failed to parse {path}")
                     print(e)
+
+                    _log(log_path, f"Failed to parse {path}.")
+                    _log(log_path, str(e))
                 return None
 
         if "runs" in sarif:
@@ -264,24 +286,35 @@ class SarifFile:
             # Grab the single run from the SARIF file.
             run = sarif["runs"][0]
 
+            if len(sarif["runs"]) > 1 and verbose:
+                print("More than one run found!")
+                _log(log_path, "\tMore than one run found!")
+
             tool = None
             artifacts = []
             results = []
 
             if "tool" in run:
-                tool = Tool.from_dict(run["tool"])
+                tool = Tool.from_dict(run["tool"], log_path=log_path)
+            else:
+                _log(log_path, "\tNo tool field found!")
 
             if "artifacts" in run:
                 for artifact in run["artifacts"]:
-                    artifacts.append(Artifact.from_dict(artifact))
+                    artifacts.append(Artifact.from_dict(artifact, log_path=log_path))
+            else:
+                _log(log_path, "\tNo artifacts field found!")
 
             if "results" in run:
                 for result in run["results"]:
                     # Results need to be able to reference Artifacts and the Tool
                     # Also, don't include duplicate (exactly identical) results.
-                    result = Result.from_dict(result, artifacts, tool, verbose=verbose)
+                    result = Result.from_dict(result, artifacts, tool, verbose=verbose, log_path=log_path)
                     if result not in results:
                         results.append(result)
+
+            else:
+                _log(log_path, "\tNo results field found!")
 
             return SarifFile(tool=tool, artifacts=artifacts, results=results)
                 
