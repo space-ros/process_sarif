@@ -58,6 +58,13 @@ class Artifact:
         '''
         return os.path.join(self.uriBaseId, self.uri) == os.path.join(other.uriBaseId, other.uri)
 
+    def get_path(self) -> str:
+        '''
+        Returns the absolute path to this Artifact.
+        '''
+
+        return os.path.join(self.uriBaseId, self.uri)
+
 @dataclass
 class Rule:
     '''

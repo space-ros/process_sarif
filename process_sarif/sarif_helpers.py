@@ -92,6 +92,12 @@ def find_duplicate_results(results: List[Result], verbose=False) -> List[Result]
             if res.artifact == group[0].artifact and res.region == group[0].region:
                 group.append(res)
                 matched_group = True
+
+                if res.ruleId != group[0].ruleId and verbose:
+                    print(f"Mismatched rule IDs: {res.ruleId} and {group[0].ruleId}")
+                    print(f"Rule texts:\n\t{res.message}\n\t{group[0].message}\n")
+                    print(f"Artifact location: {res.artifact.get_path()}:{res.region.startLine}\n")
+
                 break
 
         # If this result didn't match a group, create a new one and add this to unique results.
