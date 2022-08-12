@@ -71,41 +71,41 @@ def replace_misra_results(results: List[Result], verbose=False) -> List[Result]:
 
     return results
 
-def find_duplicate_results(results: List[Result]) -> Tuple[List[List[Result]], List[Result]]:
+def find_duplicate_results(results: List[Result], verbose=False) -> List[Result]:
     '''
-    Takes a list of results, and finds duplicate results across them. The return type is complicated, but is just a tuple of two items:
-        1. List[List[Result]]. This is a list of lists, where each inner list is Results that are duplicated of each other.
-        2. List[Result]. The Results that are remaining after duplicates are removed.
-
-    A Result is the same as another if they share the same Artifact and Region.
+    Takes a list of results, and finds duplicate results across them. The returned
+      Results are the unique Results after removing duplicates.
+    A Result is the same as another if they share an identical Artifact and Region.
+      This is a poor assumption, but a reasonable first pass.
     '''
 
     unique_results = []
     duplicate_groups = []
     
-    for r1 in results:
-        for r2 in results:
-            # Skip the ones that are the same, since we're iterating through a 1d list.
-            if r1 is r2: continue
+    for res in results:
+        matched_group = False
 
-            if r1.artifact == r2.artifact:
-                in_duplicates = False
+        for group in duplicate_groups:
+            # If the artifact and region match, its likely this is the same result
+            # We don't need to search every element in group, since they are guaranteed to
+            #   all match artifact and region, based on how the list is constructed.
+            if res.artifact == group[0].artifact and res.region == group[0].region:
+                group.append(res)
+                matched_group = True
+                break
 
-                for group in duplicate_groups:
-                    if r1 in group:
-                        group.append(r1)
-                        in_duplicates = True
-                        break
-                    elif r2 in group:
-                        group.append(r2)
-                        in_duplicates = True
-                        break
+        # If this result didn't match a group, create a new one and add this to unique results.
+        if not matched_group:
+            duplicate_groups.append([res])
+            unique_results.append(res)
 
-                if not in_duplicates:
-                    duplicate_groups.append([r1, r2])
+    total_duplicates = 0
 
-                # Only add r1 to 
+    for group in duplicate_groups:
+        if len(group) > 1:
+            total_duplicates += len(group)
 
+    if verbose: print(f"Total number of duplicates found: {total_duplicates}")
 
 if __name__ == "__main__":
     print("This is a library! Don't run me :(")
