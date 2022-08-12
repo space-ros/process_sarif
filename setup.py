@@ -22,7 +22,8 @@ setup(
         'console_scripts': [
             'sarif_load_test = process_sarif.sarif_load_test:main',
             'conformance = process_sarif.conformance:main',
-            'duplicates = process_sarif.duplicates:main'
+            'duplicates = process_sarif.duplicates:main',
+            'visualize = process_sarif.visualize:main'
         ],
     },
 )

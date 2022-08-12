@@ -124,6 +124,7 @@ class Level(Enum):
     A Level is the "severity" of a Result.
     '''
 
+    UNKNOWN = 0
     ERROR = 1
     WARNING = 2
     NOTE = 3
@@ -148,6 +149,7 @@ class ResultKind(Enum):
     A ResultKind is similar but not identical to Level.
     '''
 
+    UNKNOWN = 0
     PASS = 1
     OPEN = 2
     INFORMATIONAL = 3
@@ -216,8 +218,8 @@ class Result:
     @staticmethod
     def from_dict(result_dict: dict, artifacts: List[Artifact], tool: Tool, verbose=True, log_path: Optional[str] = None) -> "Result":
         ruleId = result_dict["ruleId"]
-        level = Level.from_str(result_dict["level"]) if "level" in result_dict else ""
-        kind = ResultKind.from_str(result_dict["kind"]) if "kind" in result_dict else ""
+        level = Level.from_str(result_dict["level"]) if "level" in result_dict else Level.UNKNOWN
+        kind = ResultKind.from_str(result_dict["kind"]) if "kind" in result_dict else ResultKind.UNKNOWN
         message = result_dict["message"]["text"] if "text" in result_dict["message"] else ""
         
         if len(result_dict["locations"]) > 1 and verbose:
