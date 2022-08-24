@@ -19,14 +19,12 @@ def get_sarif_in_build(whitelist=[], verbose=True, log_path: Optional[str] = Non
 
     sarif_files = []
 
-    # TODO: Find a different way to get at the build directory, since this will no longer work.
     build_dirs = os.listdir("build")
 
     for package in build_dirs:
         # If a whitelist was provided and this package isn't in it, then discard.
         if len(whitelist) > 0 and package not in whitelist: continue
         
-        # TODO: os.getcwd() isn't going to work anymore since this is in a ROS package.
         results_path = os.path.join(os.getcwd(), "build", package, "test_results", package)
 
         # If the results don't exist for this package, skip it.

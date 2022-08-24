@@ -39,6 +39,14 @@ class Artifact:
     uriBaseId: str
     filename: str
 
+    def to_dict() -> dict:
+        return {
+            "location": {
+                "uri": self.uri,
+                "uriBaseId": self.uriBaseId
+            }
+        }
+
     @staticmethod
     def from_dict(artifact_dict: dict, log_path: Optional[str] = None) -> "Artifact":
         uri = artifact_dict["location"]["uri"]
@@ -79,6 +87,15 @@ class Rule:
     description: str
     helpUri: str
 
+    def to_dict() -> dict:
+        return {
+            "id": self.ruleId,
+            "shortDescription": {
+                "text": self.description
+            },
+            "helpUri": self.helpUri
+        }
+
     @staticmethod
     def from_dict(rule_dict: dict) -> "Rule":
         ruleId = rule_dict["id"] if "id" in rule_dict else ""
@@ -102,6 +119,16 @@ class Tool:
     version: str
     informationUri: str
     rules: List[Rule]
+
+    def to_dict():
+        return {
+            "driver": {
+                "name": self.name,
+                "version": self.version,
+                "informationUri": self.informationUri,
+                "rules": [rule.to_dict() for rule in self.rules]
+            }
+        }
 
     @staticmethod
     def from_dict(tool_dict: dict, log_path: Optional[str] = None) -> "Tool":
@@ -144,6 +171,19 @@ class Level(Enum):
             print(f"[sarif][Level] Error! Level Enum from_str called with invalid level_str {level_str}.")
             return None
 
+    def __str__(self) -> str:
+        # There must be a better way to do this...
+        if self == Level.UNKNOWN:
+            return "unknown"
+        elif self == Level.ERROR:
+            return "error"
+        elif self == Level.WARNING:
+            return "warning"
+        elif self == Level.NOTE:
+            return "note"
+        elif self == Level.NONE:
+            return "none"
+
 class ResultKind(Enum):
     '''
     A ResultKind is similar but not identical to Level.
@@ -170,7 +210,21 @@ class ResultKind(Enum):
             return ResultKind.FAIL
         else:
             print(f"[sarif][ResultKind] Error! ResultKind Enum from_str called with invalid kind_str {kind_str}.")
-            return None
+            return ResultKind.UNKNOWN
+
+    def __str__(self) -> str:
+        if self == ResultKind.UNKNOWN:
+            return "unknown"
+        elif self == ResultKind.PASS:
+            return "pass"
+        elif self == ResultKind.OPEN:
+            return "open"
+        elif self == ResultKind.INFORMATIONAL:
+            return "informational"
+        elif self == ResultKind.REVIEW:
+            return "review"
+        elif self == ResultKind.FAIL:
+            return "fail"
 
 @dataclass
 class Region:
@@ -181,14 +235,25 @@ class Region:
     startLine: int
     startColumn: int
 
+    def to_dict(self) -> dict:
+        region_dict = {}
+
+        if startLine != -1:
+            region_dict["startLine"] = self.startLine
+
+        if startColumn != -1:
+            region_dict["startColumn"] = self.startColumn
+
+        return region_dict
+
     @staticmethod
     def from_dict(region_dict: dict, log_path: Optional[str] = None) -> "Region":
-        startLine = region_dict["startLine"] if "startLine" in region_dict else ""
-        startColumn = region_dict["startColumn"] if "startColumn" in region_dict else ""
+        startLine = region_dict["startLine"] if "startLine" in region_dict else -1
+        startColumn = region_dict["startColumn"] if "startColumn" in region_dict else -1
 
         if startLine == "":
             _log(log_path, "\tStart line not set!")
-        
+        ""
         return Region(startLine=startLine, startColumn=startColumn)
 
 @dataclass
@@ -211,9 +276,29 @@ class Result:
     kind: ResultKind
     message: str
     artifact: Optional[Artifact]
+    artifactIdx: int
     region: Optional[Region]
     tool: Tool
     package: str
+
+    def to_dict() -> dict:
+        return {
+            "ruleId": self.ruleId,
+            "level": str(self.level),
+            "kind": str(self.kind),
+            "message": {
+                "text": self.message
+            },
+            "locations": [{
+                "physicalLocation": {
+                    "artifactLocation": {
+                        "uri": self.artifact.uri,
+                        "index": self.artifactIdx
+                    },
+                    "region": self.region.to_dict()
+                }
+            }]
+        }
 
     @staticmethod
     def from_dict(result_dict: dict, artifacts: List[Artifact], tool: Tool, verbose=True, log_path: Optional[str] = None) -> "Result":
@@ -274,8 +359,31 @@ class SarifFile:
     artifacts: List[Artifact]
     results: List[Result]
 
+    _json_dict: str
+
+    def write_json(path: str, verbose=False, log_path: Optional[str] = None) -> None:
+        '''
+        SarifFile.write_json applies the results field to the original _json_dict field, and
+        writes this back to the path provided.
+        '''
+        
+        if self.tool is not None:
+            self._json_dict["runs"]["tool"] = self.tool.to_dict()
+
+        self._json_dict["runs"]["artifacts"] = [artifact.to_dict() for artifact in self.artifacts]
+        self._json_dict["runs"]["results"] = [result.to_dict() for result in self.results]
+
+        if os.path.exists(path):
+            os.remove(path)
+
+        with open(path, "w+") as f:
+            json.dump(self._json_dict, f, indent=2)
+
     @staticmethod
     def from_path(path: str, verbose=True, log_path: Optional[str] = None) -> Optional["SarifFile"]:
+        '''
+        SarifFile.from_path constructs a SarifFile from a provided path.
+        '''
         if verbose: print(f"Loading {path} as SarifFile.")
         with open(path) as sarif_f:
             try:
@@ -325,7 +433,7 @@ class SarifFile:
             else:
                 _log(log_path, "\tNo results field found!")
 
-            return SarifFile(tool=tool, artifacts=artifacts, results=results)
+            return SarifFile(tool=tool, artifacts=artifacts, results=results, _json_dict=sarif)
                 
 if __name__ == "__main__":
     print("Please don't run me, I'm a library :(")
