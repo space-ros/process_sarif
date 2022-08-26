@@ -345,6 +345,7 @@ class Result:
                       kind=kind,
                       message=message,
                       artifact=artifact,
+                      artifactIdx=idx,
                       region=region,
                       tool=tool,
                       package=package)
@@ -355,29 +356,57 @@ class SarifFile:
     A SarifFile is a composition of a Tool, one or multiple Artifacts, and one or multiple Results.
     Each of these objects handles its own initialization through calls to their from_dict() @staticmethods.
     '''
-    tool: Optional[Tool]
-    artifacts: List[Artifact]
-    results: List[Result]
+    _tool: Optional[Tool]
+    _artifacts: List[Artifact]
+    _results: List[Result]
 
     _json_dict: str
+
+    # Properties for each of the core SarifFile fields. Allows for _json_dict to be automatically
+    # updated when they are set with .setter()s
+    @property
+    def tool(self):
+        return self._tool
+
+    @tool.setter
+    def tool(self, value: Tool):
+        self._json_dict["runs"]["tool"] = value.to_dict()
+        self._tool = value
+
+    @property
+    def artifacts(self):
+        return self._artifacts
+
+    @artifacts.setter
+    def artifacts(self, value: List[Artifact]):
+        self._json_dict["runs"]["artifacts"] = [artifact.to_dict() for artifact in value]
+        self._artifacts = value
+
+    @property
+    def results(self):
+        return self._results
+
+    @results.setter
+    def results(self, value: List[Result]):
+        self._json_dict["runs"]["results"] = [result.to_dict() for result in value]
+        self._results = value
+
+    @property
+    def json_dict(self):
+        return self._json_dict
+
+    @property
+    def json(self):
+        return json.dumps(self._json_dict, indent=2)
 
     def write_json(path: str, verbose=False, log_path: Optional[str] = None) -> None:
         '''
         SarifFile.write_json applies the results field to the original _json_dict field, and
         writes this back to the path provided.
         '''
-        
-        if self.tool is not None:
-            self._json_dict["runs"]["tool"] = self.tool.to_dict()
-
-        self._json_dict["runs"]["artifacts"] = [artifact.to_dict() for artifact in self.artifacts]
-        self._json_dict["runs"]["results"] = [result.to_dict() for result in self.results]
-
-        if os.path.exists(path):
-            os.remove(path)
 
         with open(path, "w+") as f:
-            json.dump(self._json_dict, f, indent=2)
+            f.write(self.json)
 
     @staticmethod
     def from_path(path: str, verbose=True, log_path: Optional[str] = None) -> Optional["SarifFile"]:
@@ -433,7 +462,7 @@ class SarifFile:
             else:
                 _log(log_path, "\tNo results field found!")
 
-            return SarifFile(tool=tool, artifacts=artifacts, results=results, _json_dict=sarif)
+            return SarifFile(_tool=tool, _artifacts=artifacts, _results=results, _json_dict=sarif)
                 
 if __name__ == "__main__":
     print("Please don't run me, I'm a library :(")
