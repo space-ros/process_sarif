@@ -324,6 +324,7 @@ class Result:
                 artifact = artifacts[idx]
             # If not, search by URI
             else:
+                idx = -1
                 uri = artLoc["uri"]
                 for art in artifacts:
                     if uri == art.uri or uri == os.path.join(art.uriBaseId, art.uri):
