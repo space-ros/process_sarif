@@ -39,7 +39,7 @@ class Artifact:
     uriBaseId: str
     filename: str
 
-    def to_dict() -> dict:
+    def to_dict(self) -> dict:
         return {
             "location": {
                 "uri": self.uri,
@@ -87,7 +87,7 @@ class Rule:
     description: str
     helpUri: str
 
-    def to_dict() -> dict:
+    def to_dict(self) -> dict:
         return {
             "id": self.ruleId,
             "shortDescription": {
@@ -120,7 +120,7 @@ class Tool:
     informationUri: str
     rules: List[Rule]
 
-    def to_dict():
+    def to_dict(self):
         return {
             "driver": {
                 "name": self.name,
@@ -238,10 +238,10 @@ class Region:
     def to_dict(self) -> dict:
         region_dict = {}
 
-        if startLine != -1:
+        if self.startLine != -1:
             region_dict["startLine"] = self.startLine
 
-        if startColumn != -1:
+        if self.startColumn != -1:
             region_dict["startColumn"] = self.startColumn
 
         return region_dict
@@ -281,7 +281,7 @@ class Result:
     tool: Tool
     package: str
 
-    def to_dict() -> dict:
+    def to_dict(self) -> dict:
         return {
             "ruleId": self.ruleId,
             "level": str(self.level),
@@ -361,6 +361,7 @@ class SarifFile:
     _results: List[Result]
 
     _json_dict: str
+    _path: str
 
     # Properties for each of the core SarifFile fields. Allows for _json_dict to be automatically
     # updated when they are set with .setter()s
@@ -370,7 +371,7 @@ class SarifFile:
 
     @tool.setter
     def tool(self, value: Tool):
-        self._json_dict["runs"]["tool"] = value.to_dict()
+        self._json_dict["runs"][0]["tool"] = value.to_dict()
         self._tool = value
 
     @property
@@ -379,7 +380,7 @@ class SarifFile:
 
     @artifacts.setter
     def artifacts(self, value: List[Artifact]):
-        self._json_dict["runs"]["artifacts"] = [artifact.to_dict() for artifact in value]
+        self._json_dict["runs"][0]["artifacts"] = [artifact.to_dict() for artifact in value]
         self._artifacts = value
 
     @property
@@ -388,7 +389,8 @@ class SarifFile:
 
     @results.setter
     def results(self, value: List[Result]):
-        self._json_dict["runs"]["results"] = [result.to_dict() for result in value]
+        #print(self._json_dict["runs"][0]["results"])
+        self._json_dict["runs"][0]["results"] = [result.to_dict() for result in value]
         self._results = value
 
     @property
@@ -399,11 +401,15 @@ class SarifFile:
     def json(self):
         return json.dumps(self._json_dict, indent=2)
 
-    def write_json(path: str, verbose=False, log_path: Optional[str] = None) -> None:
+    def write_json(self, path: Optional[str] = None, verbose=False, log_path: Optional[str] = None) -> None:
         '''
         SarifFile.write_json applies the results field to the original _json_dict field, and
-        writes this back to the path provided.
+        writes this back to the path provided. If path is not provided, then this will overwrite
+        where this file was originally loaded from.
         '''
+
+        if path is None:
+            path = self._path
 
         with open(path, "w+") as f:
             f.write(self.json)
@@ -462,7 +468,13 @@ class SarifFile:
             else:
                 _log(log_path, "\tNo results field found!")
 
-            return SarifFile(_tool=tool, _artifacts=artifacts, _results=results, _json_dict=sarif)
+            return SarifFile(
+                _tool=tool,
+                _artifacts=artifacts,
+                _results=results,
+                _json_dict=sarif,
+                _path=path
+            )
                 
 if __name__ == "__main__":
     print("Please don't run me, I'm a library :(")

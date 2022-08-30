@@ -41,10 +41,11 @@ def get_sarif_in_build(whitelist=[], verbose=True, log_path: Optional[str] = Non
 
     return sarif_files
 
-def replace_misra_results(results: List[Result], verbose=False) -> List[Result]:
-    '''
-    Load MISRA rules from share/config/misra_rules.txt, and applies them to any Result referencing a MISRA rule.
-    '''
+def replace_misra_rules(files: List[SarifFile], verbose=False) -> List[SarifFile]:
+    """
+    Load MISRA rules from share/config/misra_rules.txt, and applies them to any Result in a
+    SarifFile referencing a MISRA rule.
+    """
 
     rules = {}
 
@@ -59,15 +60,21 @@ def replace_misra_results(results: List[Result], verbose=False) -> List[Result]:
     total_replaced = 0
 
     # Check and replace all matching results
-    for result in results:
-        if result.ruleId in rules:
-            result.message = rules[result.ruleId]
+    for f in files:
+        results = f.results
+        for result in results:
+            if result.ruleId in rules:
+                print(f"Replacing {result.ruleId}")
+                result.message = rules[result.ruleId]
 
-            total_replaced += 1
+                total_replaced += 1
+
+        # Explicitly set the SarifFile.results so that JSON is updated
+        f.results = results
 
     if verbose: print(f"Replaced {total_replaced} MISRA rules total.")
 
-    return results
+    return files
 
 def find_duplicate_results(results: List[Result], verbose=False) -> List[Result]:
     '''

@@ -25,8 +25,9 @@ def main():
     print(f"Total results: {result_count}")
     print("Replacing MISRA rule text")
 
-    for f in sarif_files:
-        f.results = replace_misra_results(f.results)
+    # TODO: Refactor to work with SarifFiles instead of Results
+    #for f in sarif_files:
+        #f.results = replace_misra_results(f.results)
 
     use_pprint = False
 

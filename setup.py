@@ -24,7 +24,8 @@ setup(
             'sarif_load_test = process_sarif.sarif_load_test:main',
             'conformance = process_sarif.conformance:main',
             'duplicates = process_sarif.duplicates:main',
-            'visualize = process_sarif.visualize:main'
+            'visualize = process_sarif.visualize:main',
+            'replace_misra = process_sarif.replace_misra:main'
         ],
     },
 )
