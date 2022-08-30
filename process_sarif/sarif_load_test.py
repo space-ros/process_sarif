@@ -16,7 +16,7 @@ def main():
     if not os.path.exists("build"):
         print("Failed to find build directoy. Please run this script from your workspace root.")
 
-    sarif_files = get_sarif_in_build(verbose=False)
+    sarif_files = get_sarif_in_build(verbose=False)[1]
 
     print(f"Loaded in {len(sarif_files)} SARIF files.")
 

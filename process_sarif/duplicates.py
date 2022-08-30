@@ -4,7 +4,7 @@ from process_sarif.sarif_helpers import get_sarif_in_build, find_duplicate_resul
 
 
 def main():
-    sarif_files = get_sarif_in_build(verbose=False)
+    sarif_files = get_sarif_in_build(verbose=False)[1]
 
     results = []
     for f in sarif_files:

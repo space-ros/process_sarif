@@ -18,6 +18,7 @@ def get_sarif_in_build(whitelist=[], verbose=True, log_path: Optional[str] = Non
     '''
 
     sarif_files = []
+    sarif_filenames = []
 
     build_dirs = os.listdir("build")
 
@@ -38,8 +39,9 @@ def get_sarif_in_build(whitelist=[], verbose=True, log_path: Optional[str] = Non
                 sarif_file = SarifFile.from_path(sarif_path, verbose=verbose, log_path=log_path)
                 if sarif_file is not None:
                     sarif_files.append(sarif_file)
+                    sarif_filenames.append(sarif_path)
 
-    return sarif_files
+    return (sarif_filenames, sarif_files)
 
 def replace_misra_results(results: List[Result], verbose=False) -> List[Result]:
     '''
