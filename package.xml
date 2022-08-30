@@ -5,7 +5,7 @@
   <version>0.0.1</version>
   <description>Python libraries and scripts to parse and process SARIF from static analyzers.</description>
   <maintainer email="ebenevedes@blueorigin.com">Eli Benevedes</maintainer>
-  <license>TODO: License declaration</license>
+  <license>Apache-2.0</license>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
