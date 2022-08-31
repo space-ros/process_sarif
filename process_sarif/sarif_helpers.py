@@ -41,7 +41,7 @@ def get_sarif_in_build(whitelist=[], verbose=True, log_path: Optional[str] = Non
 
     return sarif_files
 
-def replace_misra_rules(files: List[SarifFile], verbose=False) -> List[SarifFile]:
+def replace_misra_rules(files: List[SarifFile], rules_txt_path: str, verbose=False) -> List[SarifFile]:
     """
     Load MISRA rules from share/config/misra_rules.txt, and applies them to any Result in a
     SarifFile referencing a MISRA rule.
@@ -52,7 +52,7 @@ def replace_misra_rules(files: List[SarifFile], verbose=False) -> List[SarifFile
     share_dir = get_package_share_directory("process_sarif")
 
     # Load into rules dict from misra_rules
-    with open(os.path.join(share_dir, "config/misra_rules.txt")) as f:
+    with open(rules_txt_path)) as f:
         for line in f.readlines():
             rule_id, text = line.split("\t")
             rules[rule_id] = text
