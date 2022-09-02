@@ -3,11 +3,11 @@
 from matplotlib import pyplot as plt
 
 from process_sarif.sarif import ResultKind, Level
-from process_sarif.sarif_helpers import get_sarif_in_build
+from process_sarif.sarif_helpers import get_sarif_in_build, remove_duplicate_results
 
 
 def main():
-    sarif_files = get_sarif_in_build(verbose=False)
+    sarif_files = remove_duplicate_results(get_sarif_in_build(verbose=False))
 
     results = []
     for f in sarif_files:
