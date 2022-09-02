@@ -109,7 +109,8 @@ def remove_duplicate_results(files: List[SarifFile], verbose=False) -> List[Sari
         for res in results[:]:
             # If we haven't encountered this rule, it can't be a duplicate.
             if res.ruleId not in results_lookup:
-                print(f"Rule {res.ruleId} does not exist, adding entry.")
+                if verbose: print(f"Rule {res.ruleId} does not exist, adding entry.")
+
                 results_lookup[res.ruleId] = {}
                 results_lookup[res.ruleId][res.artifact] = {}
                 results_lookup[res.ruleId][res.artifact] = {res.region}
@@ -118,7 +119,8 @@ def remove_duplicate_results(files: List[SarifFile], verbose=False) -> List[Sari
             # Note the short circuit: if the first term is False, the second doesn't evaluate.
             # If both are true, we have a duplicate! This lookup is hopefully ~O(1).
             if res.artifact in results_lookup[res.ruleId] and res.region in results_lookup[res.ruleId][res.artifact]:
-                print(f"Result duplicate found, removing res idx {results.index(res)} from sarif file idx {files.index(f)}")
+                if verbose: print(f"Result duplicate found, removing res idx {results.index(res)} from sarif file idx {files.index(f)}")
+                
                 results.remove(res)
                 removed_res_count += 1
             # Otherwise, we need to update the results_lookup dict with data that missed on lookup.
