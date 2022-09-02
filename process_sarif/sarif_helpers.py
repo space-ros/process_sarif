@@ -45,14 +45,26 @@ def replace_misra_rules(files: List[SarifFile], rules_txt_path: str, verbose=Fal
     """
     Load MISRA rules from share/config/misra_rules.txt, and applies them to any Result in a
     SarifFile referencing a MISRA rule.
+
+    The rules text should be in this format:
+
+    rule_id_1\tRule ID 1 description
+    rule_id_2\tRule ID 2 description
+    ...
+    rule_id_n\tRule ID n description
     """
 
     rules = {}
 
     share_dir = get_package_share_directory("process_sarif")
 
+    if not os.path.exists(rules_txt_path):
+        if verbose: print("Rules text path does not exist! Not replacing rules.")
+
+        return files
+
     # Load into rules dict from misra_rules
-    with open(rules_txt_path)) as f:
+    with open(rules_txt_path) as f:
         for line in f.readlines():
             rule_id, text = line.split("\t")
             rules[rule_id] = text
