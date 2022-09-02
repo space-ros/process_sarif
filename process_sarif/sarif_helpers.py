@@ -130,5 +130,7 @@ def find_duplicate_results(results: List[Result], verbose=False) -> List[Result]
 
     if verbose: print(f"Total number of duplicates found: {total_duplicates}")
 
+    return unique_results
+
 if __name__ == "__main__":
     print("This is a library! Don't run me :(")
