@@ -56,8 +56,6 @@ def replace_misra_rules(files: List[SarifFile], rules_txt_path: str, verbose=Fal
 
     rules = {}
 
-    share_dir = get_package_share_directory("process_sarif")
-
     if not os.path.exists(rules_txt_path):
         if verbose: print("Rules text path does not exist! Not replacing rules.")
 
@@ -88,47 +86,53 @@ def replace_misra_rules(files: List[SarifFile], rules_txt_path: str, verbose=Fal
 
     return files
 
-def find_duplicate_results(results: List[Result], verbose=False) -> List[Result]:
+def remove_duplicate_results(files: List[SarifFile], verbose=False) -> List[SarifFile]:
     '''
-    Takes a list of results, and finds duplicate results across them. The returned
-      Results are the unique Results after removing duplicates.
-    A Result is the same as another if they share an identical Artifact and Region.
-      This is a poor assumption, but a reasonable first pass.
+    Takes a list of results, and removes duplicate results across them. The returned
+      SarifFiles will only have one Result out of the set of duplicates included.
+    A Result is the same as another if they share an identical Artifact, Region, and Result.ruleId.
+    The first SarifFile in the returned List[SarifFile] for which a duplicate was found will retain the Result.
+
+    TODO: If a removed result is the last of that ruleId in the SarifFile, remove that Rule from the Tool.
+    TODO: If a remove result is the last referring to an Artifact in the SarifFile, remove that Artifact from the SarifFile.
+    TODO: Once the above 2 are implemented, rework test_sarif:test_duplicate_result() to conform.
     '''
 
-    unique_results = []
-    duplicate_groups = []
+    # Dictionary of {rule_id_1: {artifact_1: {region_1, region_2, ...}, ...}, ...}
+    # This is for speedy checking of duplicate results.
+    results_lookup = {}
+
+    removed_res_count = 0
     
-    for res in results:
-        matched_group = False
+    for f in files:
+        results = f.results
+        for res in results[:]:
+            # If we haven't encountered this rule, it can't be a duplicate.
+            if res.ruleId not in results_lookup:
+                print(f"Rule {res.ruleId} does not exist, adding entry.")
+                results_lookup[res.ruleId] = {}
+                results_lookup[res.ruleId][res.artifact] = {}
+                results_lookup[res.ruleId][res.artifact] = {res.region}
+                continue
 
-        for group in duplicate_groups:
-            # If the artifact and region match, its likely this is the same result
-            # We don't need to search every element in group, since they are guaranteed to
-            #   all match artifact and region, based on how the list is constructed.
-            if res.artifact == group[0].artifact and res.region == group[0].region:
-                group.append(res)
-                matched_group = True
+            # Note the short circuit: if the first term is False, the second doesn't evaluate.
+            # If both are true, we have a duplicate! This lookup is hopefully ~O(1).
+            if res.artifact in results_lookup[res.ruleId] and res.region in results_lookup[res.ruleId][res.artifact]:
+                print(f"Result duplicate found, removing res idx {results.index(res)} from sarif file idx {files.index(f)}")
+                results.remove(res)
+                removed_res_count += 1
+            # Otherwise, we need to update the results_lookup dict with data that missed on lookup.
+            elif not res.artifact in results_lookup[res.ruleId]:
+                results_lookup[res.ruleId][res.artifact] = {res.region}
+            elif not res.region in results_lookup[res.ruleId][res.artifact]:
+                results_lookup[res.ruleId][res.artifact].add(res.region)
 
-                if res.ruleId != group[0].ruleId and verbose:
-                    print(f"Mismatched rule IDs: {res.ruleId} and {group[0].ruleId}")
-                    print(f"Rule texts:\n\t{res.message}\n\t{group[0].message}\n")
-                    print(f"Artifact location: {res.artifact.get_path()}:{res.region.startLine}\n")
+        # Trigger json update by updating the results field.
+        f.results = results
 
-                break
+    if verbose: print(f"Total number of duplicates removed: {removed_res_count}")
 
-        # If this result didn't match a group, create a new one and add this to unique results.
-        if not matched_group:
-            duplicate_groups.append([res])
-            unique_results.append(res)
-
-    total_duplicates = 0
-
-    for group in duplicate_groups:
-        if len(group) > 1:
-            total_duplicates += len(group)
-
-    if verbose: print(f"Total number of duplicates found: {total_duplicates}")
+    return files
 
 if __name__ == "__main__":
     print("This is a library! Don't run me :(")
