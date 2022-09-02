@@ -9,10 +9,12 @@ def main():
     results = []
     for f in sarif_files:
         results.extend(f.results)
+    print(f'Found {len(results)} results')
 
     # TODO: Refactor to SarifFiles instead of Results
     # misra_results = replace_misra_results(results)
     unique_results = find_duplicate_results(results, verbose=True)
+    print(f'Consolidated to {len(unique_results)} results')
 
 if __name__ == "__main__":
     main()
