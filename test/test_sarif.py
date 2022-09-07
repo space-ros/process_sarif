@@ -4,13 +4,12 @@ from copy import deepcopy
 from typing import Tuple
 import pytest
 
-from ament_index_python.packages import get_package_share_directory
 from process_sarif.sarif import Artifact, Level, Region, Result, ResultKind, Rule, SarifFile, Tool
 from process_sarif.sarif_helpers import remove_duplicate_results
 
 
 def get_sarif_path(filename: str) -> str:
-    return os.path.join(get_package_share_directory('process_sarif'), 'resources', filename)
+    return os.path.join(os.path.dirname(__file__), 'fixtures', filename)
 
 
 def load_file(filename: str) -> Tuple[SarifFile, dict]:
@@ -161,7 +160,7 @@ def test_duplicate_result_single_file():
 
     # duplicate.sarif is just simple.sarif, with the single result occurring twice. Therefore, the only
     # change should be the path attribute of simple.
-    simple._path = '/usr/local/src/rade_ws/install/process_sarif/share/process_sarif/resources/duplicate.sarif'
+    simple._path = get_sarif_path('duplicate.sarif')
 
     assert reduced == simple
 
@@ -198,7 +197,7 @@ def test_duplicate_result_multiple_files():
         ],
         _results=[],
         _json_dict=json_dict,
-        _path='/usr/local/src/rade_ws/install/process_sarif/share/process_sarif/resources/simple.sarif'
+        _path=get_sarif_path('simple.sarif')
     )
 
     assert reduced_files[1] == empty
