@@ -98,36 +98,19 @@ def remove_duplicate_results(files: List[SarifFile], verbose=False) -> List[Sari
     TODO: Once the above 2 are implemented, rework test_sarif:test_duplicate_result() to conform.
     '''
 
-    # Dictionary of {rule_id_1: {artifact_1: {region_1, region_2, ...}, ...}, ...}
-    # This is for speedy checking of duplicate results.
-    results_lookup = {}
-
+    results_lookup = set()
     removed_res_count = 0
     
     for f in files:
         results = f.results
         for res in results[:]:
-            # If we haven't encountered this rule, it can't be a duplicate.
-            if res.ruleId not in results_lookup:
-                if verbose: print(f"Rule {res.ruleId} does not exist, adding entry.")
-
-                results_lookup[res.ruleId] = {}
-                results_lookup[res.ruleId][res.artifact] = {}
-                results_lookup[res.ruleId][res.artifact] = {res.region}
-                continue
-
-            # Note the short circuit: if the first term is False, the second doesn't evaluate.
-            # If both are true, we have a duplicate! This lookup is hopefully ~O(1).
-            if res.artifact in results_lookup[res.ruleId] and res.region in results_lookup[res.ruleId][res.artifact]:
+            if (res.ruleId, res.artifact, res.region) in results_lookup:
                 if verbose: print(f"Result duplicate found, removing res idx {results.index(res)} from sarif file idx {files.index(f)}")
-                
                 results.remove(res)
                 removed_res_count += 1
-            # Otherwise, we need to update the results_lookup dict with data that missed on lookup.
-            elif not res.artifact in results_lookup[res.ruleId]:
-                results_lookup[res.ruleId][res.artifact] = {res.region}
-            elif not res.region in results_lookup[res.ruleId][res.artifact]:
-                results_lookup[res.ruleId][res.artifact].add(res.region)
+
+            else:
+                results_lookup.add((res.ruleId, res.artifact, res.region))
 
         # Trigger json update by updating the results field.
         f.results = results
