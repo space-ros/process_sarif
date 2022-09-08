@@ -31,17 +31,17 @@ The build/ subdirectory _must_ contain the unaltered sarif content of the worksp
 ## colcon-build-cmd
 
 This file _must_ contain the full colcon build command described in the colcon logs under the `latest_build` symlink.
-The file, when run as a /bin/sh program or prefixed with the `exec` shell command in a workspace root should invoke colcon in the local environment using the same arguments as the original build.
+The file, when run as a /bin/sh program or prefixed with the `exec` shell command in a workspace root _should_ invoke colcon in the local environment using the same arguments as the original build.
 
 ## colcon-test-cmd
 
-This file is identical in behavior to `colcon-build-cmd` but should describe the test command under the `latest_test` symlink.
+This file is identical in behavior to `colcon-build-cmd` but _must_ describe the test command under the `latest_test` symlink.
 
 ## processed-sarif-cmd
 
 This file is optional but recommended.
 If it is present, the processed.sarif file _must_ also be present.
-If present it should be identical to the colcon-build-cmd file in format but describe instead the command used to generate the processed.sarif file.
+If present it should be identical to the colcon-build-cmd file in format but _must_ describe instead the command used to generate the processed sarif files.
 
 ## processed.sarif
 
