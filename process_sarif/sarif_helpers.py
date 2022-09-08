@@ -88,7 +88,7 @@ def replace_misra_rules(files: List[SarifFile], rules_txt_path: str, verbose=Fal
 
 def remove_duplicate_results(files: List[SarifFile], verbose=False) -> List[SarifFile]:
     '''
-    Takes a list of results, and removes duplicate results across them. The returned
+    Takes a list of SARIF files, and removes duplicate results across them. The returned
       SarifFiles will only have one Result out of the set of duplicates included.
     A Result is the same as another if they share an identical Artifact, Region, and Result.ruleId.
     The first SarifFile in the returned List[SarifFile] for which a duplicate was found will retain the Result.
