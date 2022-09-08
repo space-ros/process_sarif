@@ -3,6 +3,9 @@
 This document describes a build results archive format which can be used to store the sarif results of a build-and-test procedure.
 
 The archive will take the form of a compressed (zstd if available, or bzip2 otherwise) tar file containing the following files.
+Once created this archive and its contents _should not_ be modified by any downstream program so that the integrity of the original build and its results can be maintained.
+
+Applications which integrate the data and enhance or elaborate it are _recommended_ to maintain their own data storage for these enhancements.
 
 ```
 ./build-results-archive
