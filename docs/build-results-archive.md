@@ -43,11 +43,11 @@ This file is optional but recommended.
 If it is present, the processed.sarif file _must_ also be present.
 If present it should be identical to the colcon-build-cmd file in format but _must_ describe instead the command used to generate the processed sarif files.
 
-## processed.sarif
+## processed/**/*.sarif
 
-This file is optional but recommended.
+This directory is optional but _recommended_.
 If it is present, the process-sarif-cmd file _must_ also be present.
-If present, it _should_ contain the aggregated, consolidated sarif results from the entire build/ directory.
+If present, it _should_ contain the processed sarif results otherwise preserving the directory structure of sarif files in the  `build/` directory.
 
 ## vcs-export-exact.repos
 
