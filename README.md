@@ -20,7 +20,7 @@ These are files that aren't run directly, but can be imported by your own script
 - sarif.py
     - This library has dataclass models for different interesting components from the (SARIF spec)[https://docs.oasis-open.org/sarif/sarif/v2.1.0/csprd01/sarif-v2.1.0-csprd01.html]. It does NOT implement the whole spec (nowhere near). The main entry point is SarifFile.fromPath, which will create a SarifFile object (composition of Tool, Artifacts, and Results) from the file path passed in.
 - sarif_helpers.py
-    - This file contains helper functions for manipulating objects defined in sarif.py. The most common one used is `get_sarif_in_build`, which will return a SarifFile for every `*.sarif` file found in `build/**`.
+    - This file contains helper functions for manipulating objects defined in sarif.py. The most common one used is `get_sarif_in_build`, which will return a SarifFile for every `build/**/*.sarif`.
 
 ## 3. Desired features (not yet implemented)
 - There should be functions provided to aggregate Results by:

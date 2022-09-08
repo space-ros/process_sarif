@@ -24,7 +24,7 @@ def _log(log_path: str, message: str):
         with open(log_path, "a") as f:
             f.write(message + "\n")
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class Artifact:
     '''
     An Artifact refers to a file. A SARIF file may have many artifacts, and Results within refer to them.
@@ -226,7 +226,7 @@ class ResultKind(Enum):
         elif self == ResultKind.FAIL:
             return "fail"
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class Region:
     '''
     A Region is the line (and optionally column) within an Artifact that a Result is referring to.
