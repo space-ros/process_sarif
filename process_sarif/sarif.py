@@ -367,6 +367,10 @@ class SarifFile:
     # Properties for each of the core SarifFile fields. Allows for _json_dict to be automatically
     # updated when they are set with .setter()s
     @property
+    def path(self):
+        return self._path
+
+    @property
     def tool(self):
         return self._tool
 
