@@ -42,7 +42,6 @@ def main():
 
         # TODO(Steven!) Add colcon-build-cmd, colcon-test-cmd, and process-sarif-cmd.
         
-        # TODO(Steven!) Add vcs-export-exact.repos
         # Assume we are at the workspace root, since log/build_results_archives is relative to ws_root.
         repos = subprocess.run(["vcs", "export", "--exact", "src"], capture_output=True).stdout.decode()
 
