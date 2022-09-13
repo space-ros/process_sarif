@@ -15,6 +15,7 @@
 import os
 import pathlib
 import tarfile
+import subprocess
 
 from .sarif import SarifFile
 from .sarif_helpers import remove_duplicate_results
@@ -42,7 +43,15 @@ def main():
         archive.add('build-results-archive')
 
         # TODO(Steven!) Add colcon-build-cmd, colcon-test-cmd, and process-sarif-cmd.
+        
         # TODO(Steven!) Add vcs-export-exact.repos
+        # Assume we are at the workspace root, since log/build_results_archives is relative to ws_root.
+        repos = subprocess.call(["vcs", "export", "--exact", "src"])
+
+        with open('vcs-export-exact.repos', 'w') as repos_file:
+            repos_file.write(repos)
+
+        archive.add('vcs-export-exact.repos')
 
         for sarif in sarif_files:
             archive.add(sarif.path, recursive=True)
