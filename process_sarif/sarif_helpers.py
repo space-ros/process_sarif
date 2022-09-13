@@ -3,7 +3,6 @@
 import os
 
 from typing import List, Tuple, Optional
-from ament_index_python.packages import get_package_share_directory
 from process_sarif.sarif import SarifFile, Result
 
 
