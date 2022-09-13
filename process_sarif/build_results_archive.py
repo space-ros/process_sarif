@@ -18,7 +18,7 @@ import tarfile
 import subprocess
 
 from .sarif import SarifFile
-from .sarif_helpers import remove_duplicate_results
+from .sarif_helpers import remove_duplicate_results, get_sarif_in_build
 from typing import List
 
 
@@ -27,10 +27,8 @@ def main():
     if not os.path.isdir('log/build_results_archives'):
         os.makedirs('log/build_results_archives')
     with tarfile.open('log/build_results_archives/current.tar', 'w') as archive:
-        sarif_files = [
-                SarifFile.from_path(sarif_path, verbose=True)
-                for sarif_path in
-                sorted(pathlib.Path('build').glob('**/*.sarif'))]
+
+        sarif_files = get_sarif_in_build(verbose=False)
 
         remove_duplicate_results(sarif_files)
 
@@ -46,12 +44,16 @@ def main():
         
         # TODO(Steven!) Add vcs-export-exact.repos
         # Assume we are at the workspace root, since log/build_results_archives is relative to ws_root.
-        repos = subprocess.call(["vcs", "export", "--exact", "src"])
+        repos = subprocess.run(["vcs", "export", "--exact", "src"], capture_output=True).stdout.decode()
 
         with open('vcs-export-exact.repos', 'w') as repos_file:
             repos_file.write(repos)
 
         archive.add('vcs-export-exact.repos')
+
+        # Cleanup
+        os.remove('build-results-archive')
+        os.remove('vcs-export-exact.repos')
 
         for sarif in sarif_files:
             archive.add(sarif.path, recursive=True)
@@ -61,8 +63,6 @@ def main():
                 os.makedirs(processed_dir)
             sarif.write_json(processed)
             archive.add(processed, recursive=True)
-
-
 
 
 def processed_path(sarif_path: str):
