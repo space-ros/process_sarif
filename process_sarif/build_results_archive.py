@@ -27,7 +27,6 @@ from typing import List
 
 
 def main():
-    # TODO(Steven!) make this path independent.
     if not os.path.isdir('log/build_results_archives'):
         os.makedirs('log/build_results_archives')
     with tarfile.open(os.path.join('log', 'build_results_archives', archive_filename()), 'w:bz2') as archive:
