@@ -27,6 +27,14 @@ def main():
     if not os.path.isdir('log/build_results_archives'):
         os.makedirs('log/build_results_archives')
     with tarfile.open('log/build_results_archives/current.tar', 'w') as archive:
+        with open('colcon-build-cmd', 'w') as build_cmd_file:
+            build_cmd = get_build_cmd()
+            build_cmd_file.write(build_cmd)
+        archive.add('colcon-build-cmd')
+        with open('colcon-test-cmd', 'w') as test_cmd_file:
+            test_cmd = get_test_cmd()
+            test_cmd_file.write(test_cmd)
+        archive.add('colcon-test-cmd')
 
         sarif_files = get_sarif_in_build(verbose=False)
 
@@ -40,8 +48,6 @@ def main():
 
         archive.add('build-results-archive')
 
-        # TODO(Steven!) Add colcon-build-cmd, colcon-test-cmd, and process-sarif-cmd.
-        
         # Assume we are at the workspace root, since log/build_results_archives is relative to ws_root.
         repos = subprocess.run(["vcs", "export", "--exact", "src"], capture_output=True).stdout.decode()
 
@@ -62,6 +68,40 @@ def main():
                 os.makedirs(processed_dir)
             sarif.write_json(processed)
             archive.add(processed, recursive=True)
+
+
+def extract_cmd(logline):
+    argliststr = logline.strip().split(':colcon:Command line arguments: ')[1]
+    assert argliststr.startswith('[') and argliststr.endswith(']')
+    # this list will retain the quote characters *within* the strings.
+    arglist = argliststr[1:-1].split(', ')
+    # replace $0 (which will normally be an absolute path such as
+    # `/usr/bin/colcon` or `/venv/path/bin/colcon` with just `colcon`
+    # so it will work in a different context.
+    arglist[0] = "'colcon'"
+    return ' '.join(arglist)
+
+
+def get_build_cmd():
+    build_log_path = 'log/latest_build/logger_all.log'
+    if not os.path.exists(build_log_path):
+        raise 'No colcon build log available'
+    with open(build_log_path, 'r') as log:
+        for line in log:
+            if 'colcon:Command line arguments:' in line:
+                return extract_cmd(line)
+        raise 'No command line arguments found in log file'
+
+
+def get_test_cmd():
+    test_log_path = 'log/latest_test/logger_all.log'
+    if not os.path.exists(test_log_path):
+        raise 'No colcon test log available'
+    with open(test_log_path, 'r') as log:
+        for line in log:
+            if 'colcon:Command line arguments:' in line:
+                return extract_cmd(line)
+        raise 'No command line arguments found in log file'
 
 
 def processed_path(sarif_path: str):
