@@ -112,8 +112,3 @@ def get_test_cmd():
 def processed_path(sarif_path: str):
     return sarif_path.replace('build/', 'processed/')
 
-
-#def make_build_results_archive(sarif_files: List[SarifFile], processors):
-#    '''
-#    Create an archive of build results from the latest colcon bu
-#    '''
