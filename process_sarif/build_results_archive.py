@@ -82,6 +82,14 @@ def main():
         os.remove('vcs-export-exact.repos')
         shutil.rmtree('processed')
 
+    wsdir = os.getcwd()
+    os.chdir(os.path.join('log', 'build_results_archives'))
+    link_name = 'latest_build_results.tar.bz2'
+    if os.path.exists(link_name):
+        os.remove(link_name)
+    os.symlink(archive_name, link_name)
+    os.chdir(wsdir)
+
 
 def processed_sarif_cmd():
     # # TODO(steven): without orig_argv this just gives the script path rather
