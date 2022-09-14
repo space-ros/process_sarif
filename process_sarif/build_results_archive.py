@@ -18,6 +18,7 @@ import os.path
 import pathlib
 import tarfile
 import shutil
+import sys
 import subprocess
 
 from .sarif import SarifFile
@@ -29,7 +30,7 @@ def main():
     # TODO(Steven!) make this path independent.
     if not os.path.isdir('log/build_results_archives'):
         os.makedirs('log/build_results_archives')
-    with tarfile.open(os.path.join('log', 'build_results_archives', archive_filename()), 'w') as archive:
+    with tarfile.open(os.path.join('log', 'build_results_archives', archive_filename()), 'w:bz2') as archive:
         with open('colcon-build-cmd', 'w') as build_cmd_file:
             build_cmd = get_build_cmd()
             build_cmd_file.write(build_cmd)
@@ -129,7 +130,7 @@ def get_test_cmd():
 
 def archive_filename():
     ts = datetime.datetime.utcnow()
-    return ts.strftime('build_results_%Y-%m-%dT%H%M%SZ.tar')
+    return ts.strftime('build_results_%Y-%m-%dT%H%M%SZ.tar.bz2')
 
 
 def processed_path(sarif_path: str):
