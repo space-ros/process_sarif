@@ -29,7 +29,9 @@ from typing import List
 def main():
     if not os.path.isdir('log/build_results_archives'):
         os.makedirs('log/build_results_archives')
-    with tarfile.open(os.path.join('log', 'build_results_archives', archive_filename()), 'w:bz2') as archive:
+    archive_name = archive_filename()
+    archive_path = os.path.join('log', 'build_results_archives', archive_name)
+    with tarfile.open(archive_path, 'w:bz2') as archive:
         with open('colcon-build-cmd', 'w') as build_cmd_file:
             build_cmd = get_build_cmd()
             build_cmd_file.write(build_cmd)
