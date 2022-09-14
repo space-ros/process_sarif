@@ -14,6 +14,7 @@
 
 import datetime
 import os
+import os.path
 import pathlib
 import tarfile
 import shutil
@@ -62,15 +63,14 @@ def main():
 
         archive.add('vcs-export-exact.repos')
 
-
         for sarif in sarif_files:
-            archive.add(sarif.path, recursive=True)
+            archive.add(os.path.relpath(sarif.path), recursive=True)
             processed = processed_path(str(sarif.path))
             processed_dir = os.path.dirname(processed)
             if not os.path.isdir(processed_dir):
                 os.makedirs(processed_dir)
             sarif.write_json(processed)
-            archive.add(processed, recursive=True)
+            archive.add(os.path.relpath(processed), recursive=True)
 
         # Cleanup
         os.remove('build-results-archive')
