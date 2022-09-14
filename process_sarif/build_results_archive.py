@@ -36,6 +36,10 @@ def main():
             test_cmd = get_test_cmd()
             test_cmd_file.write(test_cmd)
         archive.add('colcon-test-cmd')
+        with open('processed-sarif-cmd', 'w') as sarif_cmd_file:
+            sarif_cmd = processed_sarif_cmd()
+            sarif_cmd_file.write(sarif_cmd)
+        archive.add('processed-sarif-cmd')
 
         sarif_files = get_sarif_in_build(verbose=False)
 
@@ -71,8 +75,21 @@ def main():
         os.remove('build-results-archive')
         os.remove('colcon-build-cmd')
         os.remove('colcon-test-cmd')
+        os.remove('processed-sarif-cmd')
         os.remove('vcs-export-exact.repos')
         shutil.rmtree('processed')
+
+
+def processed_sarif_cmd():
+    # # TODO(steven): without orig_argv this just gives the script path rather
+    # # than the invocation. For now us the expected invocation. This may get
+    # # easier if we integrate the sarif processing with an external tool 
+    # # rather than an in-workspace one.
+    # if hasattr(sys, 'orig_argv'):
+    #     return ' '.join(sys.orig_argv)
+    # else:
+    #     return ' '.join(sys.argv)
+    return 'ros2 run process_sarif make_build_archive'
 
 
 def extract_cmd(logline):
