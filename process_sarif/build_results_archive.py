@@ -15,6 +15,7 @@
 import os
 import pathlib
 import tarfile
+import shutil
 import subprocess
 
 from .sarif import SarifFile
@@ -56,9 +57,6 @@ def main():
 
         archive.add('vcs-export-exact.repos')
 
-        # Cleanup
-        os.remove('build-results-archive')
-        os.remove('vcs-export-exact.repos')
 
         for sarif in sarif_files:
             archive.add(sarif.path, recursive=True)
@@ -68,6 +66,13 @@ def main():
                 os.makedirs(processed_dir)
             sarif.write_json(processed)
             archive.add(processed, recursive=True)
+
+        # Cleanup
+        os.remove('build-results-archive')
+        os.remove('colcon-build-cmd')
+        os.remove('colcon-test-cmd')
+        os.remove('vcs-export-exact.repos')
+        shutil.rmtree('processed')
 
 
 def extract_cmd(logline):
