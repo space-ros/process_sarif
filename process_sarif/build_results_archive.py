@@ -139,7 +139,7 @@ def get_test_cmd():
 
 def archive_filename():
     ts = datetime.datetime.utcnow()
-    return ts.strftime('build_results_%Y-%m-%dT%H%M%SZ.tar.bz2')
+    return ts.strftime('build_results_%Y%m%dT%H%M%SZ.tar.bz2')
 
 
 def processed_path(sarif_path: str):
