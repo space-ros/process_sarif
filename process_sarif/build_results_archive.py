@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 import os
 import pathlib
 import tarfile
@@ -27,7 +28,7 @@ def main():
     # TODO(Steven!) make this path independent.
     if not os.path.isdir('log/build_results_archives'):
         os.makedirs('log/build_results_archives')
-    with tarfile.open('log/build_results_archives/current.tar', 'w') as archive:
+    with tarfile.open(os.path.join('log', 'build_results_archives', archive_filename()), 'w') as archive:
         with open('colcon-build-cmd', 'w') as build_cmd_file:
             build_cmd = get_build_cmd()
             build_cmd_file.write(build_cmd)
@@ -124,6 +125,11 @@ def get_test_cmd():
             if 'colcon:Command line arguments:' in line:
                 return extract_cmd(line)
         raise 'No command line arguments found in log file'
+
+
+def archive_filename():
+    ts = datetime.datetime.utcnow()
+    return ts.strftime('build_results_%Y-%m-%dT%H%M%SZ.tar')
 
 
 def processed_path(sarif_path: str):
