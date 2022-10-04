@@ -27,11 +27,15 @@ from typing import List
 
 
 def main():
+    timestr = timestamp()
     if not os.path.isdir('log/build_results_archives'):
         os.makedirs('log/build_results_archives')
-    archive_name = archive_filename()
+    archive_name = archive_filename(timestr)
     archive_path = os.path.join('log', 'build_results_archives', archive_name)
     with tarfile.open(archive_path, 'w:bz2') as archive:
+        with open('timestamp', 'w') as tsfile:
+            tsfile.write(timestr)
+        archive.add('timestamp')
         with open('colcon-build-cmd', 'w') as build_cmd_file:
             build_cmd = get_build_cmd()
             build_cmd_file.write(build_cmd)
@@ -79,6 +83,7 @@ def main():
         os.remove('colcon-build-cmd')
         os.remove('colcon-test-cmd')
         os.remove('processed-sarif-cmd')
+        os.remove('timestamp')
         os.remove('vcs-export-exact.repos')
         shutil.rmtree('processed')
 
@@ -137,9 +142,13 @@ def get_test_cmd():
         raise 'No command line arguments found in log file'
 
 
-def archive_filename():
+def timestamp():
     ts = datetime.datetime.utcnow()
-    return ts.strftime('build_results_%Y%m%dT%H%M%SZ.tar.bz2')
+    return ts.strftime('%Y%m%dT%H%M%SZ')
+
+
+def archive_filename(timestr):
+    return f'build_results_{timestr}.tar.bz2'
 
 
 def processed_path(sarif_path: str):

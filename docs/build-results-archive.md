@@ -26,6 +26,7 @@ The archive will take the form of a bzip2 compressed tar file containing the fil
 ./colcon-build-cmd
 ./colcon-test-cmd
 ./processed.sarif
+./timestamp
 ./vcs-export-exact.repos
 ```
 
@@ -61,6 +62,12 @@ If present it should be identical to the colcon-build-cmd file in format but _mu
 This directory is optional but _recommended_.
 If it is present, the process-sarif-cmd file _must_ also be present.
 If present, it _should_ contain the processed sarif results otherwise preserving the directory structure of sarif files in the  `build/` directory.
+
+### timestamp
+
+This file must contain basic-formatted ISO8601 UTC of when the results archive was produced.
+This timestamp is also present in the generated filename but including it within the archive allows the file to be renamed without losing information.
+Preserving the timestamp in the filename is recommended since this allows sorting the archives lexicographically without inspecting the archive contents.
 
 ### vcs-export-exact.repos
 
