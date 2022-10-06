@@ -54,7 +54,7 @@ This file is identical in behavior to `colcon-build-cmd` but _must_ describe the
 ### processed-sarif-cmd
 
 This file is optional but recommended.
-If it is present, the processed.sarif file _must_ also be present.
+If it is present, the processed/**/*.sarif files _must_ also be present.
 If present it should be identical to the colcon-build-cmd file in format but _must_ describe instead the command used to generate the processed sarif files.
 
 ### processed/**/*.sarif
