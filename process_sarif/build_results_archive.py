@@ -50,8 +50,7 @@ def main():
         archive.add('processed-sarif-cmd')
 
         sarif_files = get_sarif_in_build(verbose=False)
-
-        remove_duplicate_results(sarif_files)
+        processed_files = remove_duplicate_results(sarif_files)
 
         with open('build-results-archive', 'w') as config:
             config.write(
@@ -71,6 +70,8 @@ def main():
 
         for sarif in sarif_files:
             archive.add(os.path.relpath(sarif.path), recursive=True)
+
+        for sarif in processed_files:
             processed = processed_path(str(sarif.path))
             processed_dir = os.path.dirname(processed)
             if not os.path.isdir(processed_dir):
