@@ -302,7 +302,7 @@ class Result:
 
     @staticmethod
     def from_dict(result_dict: dict, artifacts: List[Artifact], tool: Tool, verbose=True, log_path: Optional[str] = None) -> "Result":
-        ruleId = result_dict["ruleId"]
+        ruleId = result_dict["ruleId"] if "ruleId" in result_dict else ""
         level = Level.from_str(result_dict["level"]) if "level" in result_dict else Level.UNKNOWN
         kind = ResultKind.from_str(result_dict["kind"]) if "kind" in result_dict else ResultKind.UNKNOWN
         message = result_dict["message"]["text"] if "text" in result_dict["message"] else ""
