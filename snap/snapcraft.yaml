@@ -1,0 +1,57 @@
+name: process-sarif
+version: '0.0.1'
+license: Apache-2.0
+summary: SARIF processing tools by Space ROS
+description: |
+  The process-sarif snap provides tools and scripts to assist in parsing and aggregating output of static analysis tools in  SARIF (Static Analysis Results Interchange Format) standard format. Its features include parsing a .sarif file, removing duplicated results, and generating visualizations by result level and severity. The project is developed and maintained by Space ROS.
+  * Source: https://github.com/space-ros/process_sarif
+  * Installation: `snap install process-sarif`
+  * Usage: Navigate to a directory containing the SARIF file(s) you wish to analyze. Run any of the available commands (sarif-load-test, conformance, duplicates, visualize), as `process-sarif.<app_name>` (ie: process-sarif.sarif-load-test)
+
+confinement: strict
+base: core22
+grade: stable
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+layout:
+  /usr/share/matplotlib/mpl-data:
+    bind: $SNAP/usr/share/matplotlib/mpl-data
+  /etc/matplotlibrc:
+    bind-file: $SNAP/etc/matplotlibrc
+  /usr/share/tcltk:
+    bind: $SNAP/usr/share/tcltk
+
+parts:
+ process-sarif:
+   plugin: colcon
+   source: https://github.com/space-ros/process_sarif.git
+   source-branch: main
+   stage-packages: 
+   - python3-matplotlib
+   - python3-tk # need to install tkinter as a dependency of matplotlib
+   - ros-humble-ros2run
+
+apps:
+ sarif-load-test:
+   command: opt/ros/humble/bin/ros2 run process_sarif sarif_load_test
+   plugs: [home]
+   extensions: [ros2-humble]
+ conformance:
+   command: opt/ros/humble/bin/ros2 run process_sarif conformance
+   plugs: [home]
+   extensions: [ros2-humble]
+ duplicates:
+   command: opt/ros/humble/bin/ros2 run process_sarif duplicates
+   plugs: [home]
+   extensions: [ros2-humble] 
+ visualize:
+   command: opt/ros/humble/bin/ros2 run process_sarif visualize
+   plugs: 
+    - home
+    - x11
+   extensions: [ros2-humble] 
+   environment:
+    LD_LIBRARY_PATH: "$LD_LIBRARY_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/blas:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/lapack"
+    # need to specify the python path to find tkinter dependency
+    PYTHONPATH: "$PYTHONPATH:$SNAP/usr/lib/python3/dist-packages:$SNAP/usr/lib/python3.10:$SNAP/usr/lib/python3.10/lib-dynload"
