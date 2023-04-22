@@ -33,7 +33,8 @@ These are files that aren't run directly, but can be imported by your own script
     - Many Cobra files cannot be loaded due to invalid JSON, or non-conformance to the SARIF spec.
 
 ## 4. Snap
-These tools are also available to install from the [Snap Store](https://snapcraft.io/about) as a [snap](https://snapcraft.io/process-sarif).
+These tools are available to install from the [Snap Store](https://snapcraft.io/about) as a [snap](https://snapcraft.io/process-sarif) as a complementary packaging option maintained by Canonical.
+
 ### Install: 
 `snap install process-sarif`
 ### Usage
