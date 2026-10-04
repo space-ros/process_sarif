@@ -124,23 +124,23 @@ def extract_cmd(logline):
 def get_build_cmd():
     build_log_path = 'log/latest_build/logger_all.log'
     if not os.path.exists(build_log_path):
-        raise 'No colcon build log available'
+        raise RuntimeError('No colcon build log available')
     with open(build_log_path, 'r') as log:
         for line in log:
             if 'colcon:Command line arguments:' in line:
                 return extract_cmd(line)
-        raise 'No command line arguments found in log file'
+        raise RuntimeError('No command line arguments found in log file')
 
 
 def get_test_cmd():
     test_log_path = 'log/latest_test/logger_all.log'
     if not os.path.exists(test_log_path):
-        raise 'No colcon test log available'
+        raise RuntimeError('No colcon test log available')
     with open(test_log_path, 'r') as log:
         for line in log:
             if 'colcon:Command line arguments:' in line:
                 return extract_cmd(line)
-        raise 'No command line arguments found in log file'
+        raise RuntimeError('No command line arguments found in log file')
 
 
 def timestamp():
