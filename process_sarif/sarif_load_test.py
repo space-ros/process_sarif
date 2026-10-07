@@ -14,7 +14,8 @@ def main():
             
     # If it still doesn't exist, fail
     if not os.path.exists("build"):
-        print("Failed to find build directoy. Please run this script from your workspace root.")
+        print("Failed to find build directory. Please run this script from your workspace root.")
+        raise SystemExit(1)
 
     sarif_files = get_sarif_in_build(verbose=False)
 
