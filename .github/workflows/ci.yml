@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  colcon-test:
+    name: Build and test in the Space ROS image
+    runs-on: ubuntu-latest
+    container:
+      image: osrf/space-ros:latest
+      options: --user root
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: src/process_sarif
+
+      - name: Install test dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            python3-flake8 \
+            python3-matplotlib \
+            python3-pydocstyle \
+            python3-pytest
+
+      - name: Build
+        run: |
+          source "${SPACEROS_DIR}/setup.bash"
+          colcon build --packages-select process_sarif
+
+      - name: Unit tests
+        run: |
+          source "${SPACEROS_DIR}/setup.bash"
+          colcon test --packages-select process_sarif \
+            --return-code-on-test-failure \
+            --pytest-args -m "not linter"
+          colcon test-result --verbose
+
+      # Linter findings are reported but do not fail the build yet.
+      - name: Linters (non-blocking)
+        continue-on-error: true
+        run: |
+          source "${SPACEROS_DIR}/setup.bash"
+          colcon test --packages-select process_sarif \
+            --return-code-on-test-failure \
+            --pytest-args -m "linter"
+          colcon test-result --verbose
