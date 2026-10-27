@@ -207,3 +207,32 @@ def test_duplicate_result_multiple_files():
 def test_duplicate_across_files():
     """Same as above, except the duplicates are in different SarifFiles."""
     assert 0 == 1
+
+
+def test_result_unset_artifact_index_round_trip():
+    """Test that a result located by URI keeps its artifact after to_dict() and from_dict()."""
+    tool = Tool(name='simple', version='0.0', informationUri='', rules=[])
+    artifacts = [
+        Artifact.from_dict({'location': {'uri': 'first.cpp', 'uriBaseId': ''}}),
+        Artifact.from_dict({'location': {'uri': 'last.cpp', 'uriBaseId': ''}}),
+    ]
+    result_dict = {
+        'ruleId': 'simple-rule-id',
+        'message': {'text': 'This is a simple rule violation.'},
+        'locations': [{
+            'physicalLocation': {
+                'artifactLocation': {'uri': 'first.cpp'},
+                'region': {'startLine': 1, 'startColumn': 1}
+            }
+        }]
+    }
+
+    loaded = Result.from_dict(result_dict, artifacts, tool, verbose=False)
+    reloaded = Result.from_dict(loaded.to_dict(), artifacts, tool, verbose=False)
+
+    assert loaded.artifact.uri == 'first.cpp'
+    assert reloaded.artifact.uri == 'first.cpp'
+
+    # With no artifacts table, an unset index must not raise IndexError.
+    reloaded = Result.from_dict(loaded.to_dict(), [], tool, verbose=False)
+    assert reloaded.artifact.uri == 'first.cpp'

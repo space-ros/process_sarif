@@ -318,8 +318,9 @@ class Result:
             location = result_dict["locations"][0]
             artLoc = location["physicalLocation"]["artifactLocation"]
             
-            # If we have an index, grab artifact by index
-            if "index" in artLoc:
+            # If we have an index, grab artifact by index. An index of -1 means
+            # it is unset (the SARIF default), so fall back to the URI search.
+            if artLoc.get("index", -1) >= 0:
                 idx = artLoc["index"]
                 artifact = artifacts[idx]
             # If not, search by URI
